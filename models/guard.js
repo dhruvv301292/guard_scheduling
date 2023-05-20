@@ -8,6 +8,9 @@ const guardSchema = new mongoose.Schema({
     hasArmedGuardCredential: {
         type: Boolean,
         default: false
+    },
+    pto: {
+        type: [Date]
     }
 })
 

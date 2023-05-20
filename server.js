@@ -11,4 +11,9 @@ db.once('connected', () => console.log('Connected to DB'))
 
 app.use(express.json()) //middleware to accept and transmit json
 
+const guardRouter = require('./routes/guardRoutes')
+const contractRouter = require('./routes/contractRoutes')
+app.use('/guard', guardRouter) // all routes in this router start with /guard
+app.use('/contract', contractRouter)
+
 app.listen(5001, () => console.log('Server started'))
