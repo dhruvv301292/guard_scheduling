@@ -31,7 +31,12 @@ Content-Type: application/json
 ###
 
 //delete Dhruv
-DELETE http://localhost:5001/guard/64692f23b024c24c281542cb
+DELETE http://localhost:5001/guard/64692f7fb024c24c281542d4
+
+###
+
+//delete contract
+DELETE http://localhost:5001/contract/646a56a2035f193d164f725b
 
 ###
 
@@ -41,6 +46,15 @@ Content-Type: application/json
 {
     "daysOccupied": [],
     "hoursWorked": 0
+}
+
+###
+
+PATCH http://localhost:5001/guard/64692f7fb024c24c281542d4
+Content-Type: application/json
+
+{
+    "pto": "Thursday"
 }
 
 ###
@@ -72,3 +86,25 @@ DELETE http://localhost:5001/contract/
 ###
 
 DELETE http://localhost:5001/schedule/
+
+###
+
+POST http://localhost:5001/contract
+Content-Type: application/json
+
+{
+    "name": "Hilton",
+    "requiresArmedGuardCredential": true,
+    "daysOfWeek": ["Wednesday", "Thursday", "Friday"]
+}
+
+###
+
+POST http://localhost:5001/contract
+Content-Type: application/json
+
+{
+    "name": "Sheraton",
+    "requiresArmedGuardCredential": false,
+    "daysOfWeek": ["Monday", "Tuesday"]
+}

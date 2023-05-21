@@ -5,9 +5,7 @@ const Schedule = require('../models/schedule')
 
 // Get all guards
 router.get('/', async (req, res) => {
-    // var days = ["Thursday"]
     try {
-        // const results = await Guard.find({"daysOccupied": {"$nin": days}}).sort({hoursWorked: 1})
         const results = await Guard.find().sort({hoursWorked: 1})
         res.json(results)
     } catch (e) {
@@ -31,7 +29,7 @@ router.post('/', async (req, res) => {
 
 // Update a guard
 router.patch('/:id', getGuardById, async (req, res) => {
-    let ptoDate, guardId;
+    let ptoDay, guardId;
     if (req.body.name != null) {
         res.guard.name = req.body.name
     }
@@ -39,9 +37,13 @@ router.patch('/:id', getGuardById, async (req, res) => {
         res.guard.hasArmedGuardCredential = req.body.hasArmedGuardCredential
     }
     if (req.body.pto != null) {
-        res.guard.pto.push(req.body.pto)
-        ptoDate = req.body.pto
-        guardId = res.guard.id        
+        if (!res.guard.daysOccupied.includes(req.body.pto)) {
+            res.guard.daysOccupied.push(req.body.pto)
+        } else {
+            res.guard.hoursWorked = res.guard.hoursWorked - 10
+        }   
+        ptoDay = req.body.pto
+        guardId = res.guard._id     
     }
     if (req.body.daysOccupied != null) {
         res.guard.daysOccupied = req.body.daysOccupied
@@ -51,8 +53,8 @@ router.patch('/:id', getGuardById, async (req, res) => {
     }
     try {
         const updatedGuard = await res.guard.save()
-        if (ptoDate) {
-            Schedule.updateScheduleAfterPto(guardId, ptoDate)
+        if (ptoDay) {
+            await Schedule.updateScheduleAfterPto(guardId, ptoDay)
         }        
         res.json(updatedGuard)
     } catch (error) {

@@ -7,7 +7,6 @@ const Schedule = require('../models/schedule')
 // Get all entries in schedule
 router.get('/', async (req, res) => {
     try {
-        var fields = { 'day': 1, 'guard.name': 1, 'contract.name': 1 };
         const results = await Schedule.find().populate('guard', 'name -_id').populate('contract', 'name -_id').select('-_id -__v')
         res.json(results)
     } catch (e) {

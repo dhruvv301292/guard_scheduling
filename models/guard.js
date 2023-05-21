@@ -9,9 +9,6 @@ const guardSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    pto: {
-        type: [Date]
-    },
     daysOccupied: {
         type: [String],
         enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']

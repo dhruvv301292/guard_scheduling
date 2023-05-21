@@ -53,6 +53,7 @@ router.patch('/:id', getContractById, async (req, res) => {
 router.delete('/:id', getContractById, async (req, res) => {
     try {
         await res.contract.deleteOne()
+        Schedule.updateScheduleAfterContractDelete(res.contract.id)
         res.json({message: 'Delete Successful'})
     } catch (error) {
         res.status(500).json({message: error.message})
