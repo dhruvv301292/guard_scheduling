@@ -13,7 +13,9 @@ app.use(express.json()) //middleware to accept and transmit json
 
 const guardRouter = require('./routes/guardRoutes')
 const contractRouter = require('./routes/contractRoutes')
+const scheduleRouter = require('./routes/scheduleRoutes')
 app.use('/guard', guardRouter) // all routes in this router start with /guard
 app.use('/contract', contractRouter)
+app.use('/schedule', scheduleRouter)
 
 app.listen(5001, () => console.log('Server started'))

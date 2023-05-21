@@ -2,12 +2,20 @@ GET http://localhost:5001/guard
 
 ###
 
+GET http://localhost:5001/schedule
+
+###
+
+GET http://localhost:5001/contract
+
+###
+
 POST http://localhost:5001/guard
 Content-Type: application/json
 
 {
     "name": "Dhruv",
-    "hasArmedGuardCredential": false
+    "hasArmedGuardCredential": false,
 }
 
 ###
@@ -27,26 +35,12 @@ DELETE http://localhost:5001/guard/64692f23b024c24c281542cb
 
 ###
 
-PATCH http://localhost:5001/guard/64692f7fb024c24c281542d4
+PATCH http://localhost:5001/guard/64692f37b024c24c281542ce
 Content-Type: application/json
 
 {
-    "hasArmedGuardCredential": true
-}
-
-###
-
-GET http://localhost:5001/contract
-
-###
-
-POST http://localhost:5001/contract
-Content-Type: application/json
-
-{
-    "name": "The Ritz 2",
-    "requiresArmedGuardCredential": true,
-    "daysOfWeek": ["Monday", "Tuesday"]
+    "daysOccupied": [],
+    "hoursWorked": 0
 }
 
 ###
@@ -55,7 +49,26 @@ PATCH http://localhost:5001/contract/64693561b024c24c281542db
 Content-Type: application/json
 
 {
-    "name": "The Ritz",
+    "name": "TheRitz",
     "requiresArmedGuardCredential": true,
     "daysOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"]
 }
+
+###
+
+POST http://localhost:5001/contract
+Content-Type: application/json
+
+{
+    "name": "TheRitz",
+    "requiresArmedGuardCredential": true,
+    "daysOfWeek": ["Monday", "Tuesday"]
+}
+
+###
+
+DELETE http://localhost:5001/contract/
+
+###
+
+DELETE http://localhost:5001/schedule/

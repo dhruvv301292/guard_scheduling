@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Contract = require('../models/contract')
+const Schedule = require('../models/schedule')
 
 // Get all contracts
 router.get('/', async (req, res) => {
@@ -21,6 +22,7 @@ router.post('/', async (req, res) => {
     })
     try {
         const newContract = await contract.save()
+        await Schedule.updateScheduleNewContract(newContract.toObject())
         res.status(201).json(newContract)
     } catch (error) {
         res.status(400).json({ message: error.message })
@@ -51,6 +53,16 @@ router.patch('/:id', getContractById, async (req, res) => {
 router.delete('/:id', getContractById, async (req, res) => {
     try {
         await res.contract.deleteOne()
+        res.json({message: 'Delete Successful'})
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+//delete all contracts
+router.delete('/', async (req, res) => {
+    try {
+        await Contract.deleteMany()
         res.json({message: 'Delete Successful'})
     } catch (error) {
         res.status(500).json({message: error.message})

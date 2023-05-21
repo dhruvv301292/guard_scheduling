@@ -11,6 +11,16 @@ const guardSchema = new mongoose.Schema({
     },
     pto: {
         type: [Date]
+    },
+    daysOccupied: {
+        type: [String],
+        enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    },
+    hoursWorked: {
+        type: Number,
+        default: function() {
+            return this.daysOccupied.length
+        }
     }
 })
 
