@@ -10,8 +10,7 @@ const guardSchema = new mongoose.Schema({
         default: false
     },
     daysOccupied: {
-        type: [String],
-        enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        type: [String]
     },
     hoursWorked: {
         type: Number,

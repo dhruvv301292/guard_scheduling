@@ -37,13 +37,13 @@ router.patch('/:id', getGuardById, async (req, res) => {
         res.guard.hasArmedGuardCredential = req.body.hasArmedGuardCredential
     }
     if (req.body.pto != null) {
-        if (!res.guard.daysOccupied.includes(req.body.pto)) {
-            res.guard.daysOccupied.push(req.body.pto)
+        ptoDay = convertToDateFormat(req.body.pto)
+        if (!res.guard.daysOccupied.includes(ptoDay)) {            
+            res.guard.daysOccupied.push(ptoDay)
         } else {
             res.guard.hoursWorked = res.guard.hoursWorked - 10
-        }   
-        ptoDay = req.body.pto
-        guardId = res.guard._id     
+        }
+        guardId = res.guard._id 
     }
     if (req.body.daysOccupied != null) {
         res.guard.daysOccupied = req.body.daysOccupied
@@ -87,6 +87,12 @@ async function getGuardById(req, res, next) {
     }
     res.guard = guard
     next()
+}
+
+function convertToDateFormat(ptoDate) {
+    ptoDate = new Date(ptoDate)
+    const formattedDate = `${ptoDate.toLocaleDateString('en-US', { weekday: 'long' })}, ${ptoDate.getMonth() + 1}/${ptoDate.getDate()}/${ptoDate.getFullYear()}`;
+    return formattedDate
 }
 
 module.exports = router

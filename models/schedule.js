@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const Guard = require('../models/guard')
-const Contract = require('../models/contract')
 
 const scheduleSchema = new mongoose.Schema({
     contract: {
@@ -15,13 +14,12 @@ const scheduleSchema = new mongoose.Schema({
     },
     day: {
         type: String,
-        enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
         required: true
     }
 })
 
 scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
-    const contractDays = contract.daysOfWeek    
+    const contractDays = contract.datesOfMonth    
     let updatedGuards = []
     for (const day of contractDays) {
         try {
@@ -31,7 +29,7 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
                 filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
             }
             const availableGuard = await Guard.findOne(filterObject).sort({hoursWorked: 1})
-            if (availableGuard && availableGuard.hoursWorked < 60) {
+            if (availableGuard) {
                 await this.create({
                     contract: contract._id,
                     guard: availableGuard._id,
@@ -40,15 +38,16 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
                 let localGuardObj = updatedGuards.find(guard => guard._id.toString() === availableGuard._id.toString())
                 if (localGuardObj) {
                     localGuardObj.daysOccupied.push(day)
-                    localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10                                                                      
+                    localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10
                 } else {
                     localGuardObj = availableGuard
                     localGuardObj.daysOccupied.push(day)
                     localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10
-                    updatedGuards.push(localGuardObj)                                                 
+                    updatedGuards.push(localGuardObj)
                 }
             } else {
                 console.log("Not enough officers to cover this contract. Please appoint more officers")
+                throw Error("Not enough officers to cover this contract. Please appoint more officers")
             }     
         } catch (error) {
             console.log(error.message)
@@ -89,7 +88,8 @@ scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) 
                         updatedGuards.push(localGuardObj)                                 
                     }
                 } else {
-                    console.log("Not enough officers to cover this contract. Please appoint more officers or reject PTO request")
+                    console.log("Not enough officers to cover this contract. Please appoint more officers or reject PTO request for officer: " + guardId)
+                    throw Error("Not enough officers to cover this contract. Please appoint more officers or reject PTO request for officer: " + guardId)
                 }
             }
         }
@@ -132,6 +132,7 @@ scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) 
                     }
                 } else {
                     console.log("Not enough officers to cover this contract. Please appoint more officers")
+                    throw Error("Not enough officers to cover this contract. Please appoint more officers")
                 }
             }
         }
@@ -168,6 +169,7 @@ scheduleSchema.statics.updateScheduleAfterContractDelete = async function(contra
         }
     } catch (error) {
         console.log(error.message)
+        throw Error(error.message)
     }
     for (const guard of updatedGuards) {
         await guard.save()
