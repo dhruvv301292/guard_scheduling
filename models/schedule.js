@@ -50,6 +50,7 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
             }     
         } catch (error) {
             console.log(error.message)
+            throw Error("Not enough officers to cover this contract. Please appoint more officers")
         }       
     };
 }

@@ -13,6 +13,14 @@ router.get('/', async (req, res) => {
     }
   })
 
+router.get('/:id', getGuardById, async (req, res) => {
+    try {
+        res.json(res.guard)
+    } catch (e) {
+        res.status(500).json({ message: e.message })
+    }
+})
+
 // Create a guard 
 router.post('/', async (req, res) => {
     const guard = new Guard({
@@ -39,10 +47,11 @@ router.patch('/:id', getGuardById, async (req, res) => {
     if (req.body.pto != null) {
         ptoDay = convertToDateFormat(req.body.pto)
         if (!res.guard.daysOccupied.includes(ptoDay)) {            
-            res.guard.daysOccupied.push(ptoDay)
+            res.guard.daysOccupied.push(ptoDay)            
         } else {
             res.guard.hoursWorked = res.guard.hoursWorked - 10
         }
+        res.guard.pto.push(ptoDay)
         guardId = res.guard._id 
     }
     if (req.body.daysOccupied != null) {
@@ -69,6 +78,16 @@ router.delete('/:id', getGuardById, async (req, res) => {
         await res.guard.deleteOne()
         Schedule.updateScheduleAfterGuardDelete(res.guard.id)
         res.json({message: 'Delete Successful'})
+    } catch (error) {
+        res.status(500).json({message: error.message})
+    }
+})
+
+//delete all guards
+router.delete('/', async (req, res) => {
+    try {
+        await Guard.deleteMany()
+        res.json({message: 'Deleted all guards successfully'})
     } catch (error) {
         res.status(500).json({message: error.message})
     }

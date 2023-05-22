@@ -1,11 +1,13 @@
 const mongoose = require('mongoose')
 
-const CONTRACT_DURATION = 30
-
 const contractSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
+    },
+    renewalDuration: {
+        type: Number,
+        default: 14
     },
     requiresArmedGuardCredential: {
         type: Boolean,
@@ -29,7 +31,7 @@ contractSchema.pre('save', function(next) {
     const dates = [];
     const currentDate = this.startDate
     const daysOfWeek = this.daysOfWeek
-    for (let i = 0; i < CONTRACT_DURATION; i++) {
+    for (let i = 0; i < this.renewalDuration; i++) {
         if (daysOfWeek.includes(currentDate.toLocaleDateString('en-US', { weekday: 'long' }))) {
             const formattedDate = `${currentDate.toLocaleDateString('en-US', { weekday: 'long' })}, ${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()}`;
             dates.push(formattedDate);

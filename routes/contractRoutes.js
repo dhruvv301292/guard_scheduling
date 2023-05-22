@@ -18,7 +18,8 @@ router.post('/', async (req, res) => {
     const contract = new Contract({
         name: req.body.name,
         requiresArmedGuardCredential: req.body.requiresArmedGuardCredential,
-        daysOfWeek: req.body.daysOfWeek
+        daysOfWeek: req.body.daysOfWeek,
+        renewalDuration: req.body.renewalDuration
     })
     try {
         const newContract = await contract.save()

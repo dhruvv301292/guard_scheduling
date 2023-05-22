@@ -2,6 +2,10 @@ GET http://localhost:5001/guard
 
 ###
 
+GET http://localhost:5001/guard/646bab7d45745af789fce054
+
+###
+
 GET http://localhost:5001/schedule
 
 ###
@@ -18,14 +22,24 @@ POST http://localhost:5001/guard
 Content-Type: application/json
 
 {
-    "name": "Dhruv",
+    "name": "Deb",
     "hasArmedGuardCredential": true
 }
 
 ###
 
-//delete Dhruv
-DELETE http://localhost:5001/guard/646af52b025b97c987a0f737
+POST http://localhost:5001/guard
+Content-Type: application/json
+
+{
+    "name": "Dhruv",
+    "hasArmedGuardCredential": false
+}
+
+###
+
+//delete specific guard
+DELETE http://localhost:5001/guard/646bb88e2886ba2b1f97c9cc
 
 ###
 
@@ -44,11 +58,11 @@ Content-Type: application/json
 
 ###
 
-PATCH http://localhost:5001/guard/646af52b025b97c987a0f737
+PATCH http://localhost:5001/guard/646bb88e2886ba2b1f97c9cc
 Content-Type: application/json
 
 {
-    "pto": "05/23/2023"
+    "pto": "6/1/2023"
 }
 
 ###
@@ -68,7 +82,18 @@ POST http://localhost:5001/contract
 Content-Type: application/json
 
 {
-    "name": "TheRitz",
+    "name": "TheRitzNYC",
+    "requiresArmedGuardCredential": true,
+    "daysOfWeek": ["Monday", "Tuesday"]
+}
+
+###
+
+POST http://localhost:5001/contract
+Content-Type: application/json
+
+{
+    "name": "TheRitzNJ",
     "requiresArmedGuardCredential": true,
     "daysOfWeek": ["Monday", "Tuesday"]
 }
@@ -83,6 +108,9 @@ DELETE http://localhost:5001/schedule/
 
 ###
 
+DELETE http://localhost:5001/guard/
+
+###
 POST http://localhost:5001/contract
 Content-Type: application/json
 
@@ -99,6 +127,7 @@ Content-Type: application/json
 
 {
     "name": "Sheraton",
+    "renewalDuration": 14,
     "requiresArmedGuardCredential": false,
-    "daysOfWeek": ["Monday", "Tuesday"]
+    "daysOfWeek": ["Wednesday", "Thursday"]   
 }

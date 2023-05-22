@@ -12,6 +12,9 @@ const guardSchema = new mongoose.Schema({
     daysOccupied: {
         type: [String]
     },
+    pto: {
+        type: [String]
+    },
     hoursWorked: {
         type: Number,
         default: function() {

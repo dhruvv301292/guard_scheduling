@@ -8,8 +8,6 @@ const Schedule = require('../models/schedule')
 router.get('/', async (req, res) => {
     let start = req.query.start
     let end = req.query.end
-    console.log(start)
-    console.log(end)
     let filterObject
     if (start) {
         start = new Date(start)
@@ -19,7 +17,6 @@ router.get('/', async (req, res) => {
         end = new Date(end)
         filterObject.day.$lte = end
     }
-    console.log(filterObject)
     try {
         const results = await Schedule.find(filterObject).populate('guard', 'name -_id').populate('contract', 'name -_id').select('-_id -__v').sort({day: 1})
         res.json(results)
