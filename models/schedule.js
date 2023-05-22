@@ -13,7 +13,7 @@ const scheduleSchema = new mongoose.Schema({
         ref: 'Guard'
     },
     day: {
-        type: String,
+        type: Date,
         required: true
     }
 })
@@ -39,7 +39,7 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
                 await this.create({
                     contract: contract._id,
                     guard: availableGuard._id,
-                    day: day
+                    day: new Date(day)
                 })
                 availableGuard.daysOccupied.push(day)
                 availableGuard.hoursWorked = availableGuard.hoursWorked + 10
@@ -56,12 +56,12 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
 
 scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) {
     try {
-        const affectedScheduleEntries = await this.find({"guard": {"$eq": guardId}, "day": {"$eq": ptoDay}}).populate('contract', 'requiresArmedGuardCredential')
-        await this.deleteMany({"guard": {"$eq": guardId}, "day": {"$eq": ptoDay}})
+        const affectedScheduleEntries = await this.find({"guard": {"$eq": guardId}, "day": {"$eq": new Date(ptoDay)}}).populate('contract', 'requiresArmedGuardCredential')
+        await this.deleteMany({"guard": {"$eq": guardId}, "day": {"$eq": new Date(ptoDay)}}) //this might not work
         if (affectedScheduleEntries.length > 0) {
             for (const affectedEntry of affectedScheduleEntries) {
                 const requiresArmedGuardCredential = affectedEntry.contract.requiresArmedGuardCredential
-                let filterObject = {"daysOccupied": {"$ne": affectedEntry.day}}
+                let filterObject = {"daysOccupied": {"$ne": getDateString(affectedEntry.day)}} //here affectedEntry.day is in date format
                 if (requiresArmedGuardCredential) {
                     filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
                 }                
@@ -79,7 +79,7 @@ scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) 
                         guard: availableGuard._id,
                         day: affectedEntry.day
                     })
-                    availableGuard.daysOccupied.push(affectedEntry.day)
+                    availableGuard.daysOccupied.push(getDateString(affectedEntry.day))
                     availableGuard.hoursWorked = availableGuard.hoursWorked + 10
                     await availableGuard.save()
                 } else {
@@ -101,7 +101,7 @@ scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) 
         if (affectedScheduleEntries.length > 0) {
             for (const affectedEntry of affectedScheduleEntries) {
                 const requiresArmedGuardCredential = affectedEntry.contract.requiresArmedGuardCredential
-                let filterObject = {"daysOccupied": {"$ne": affectedEntry.day}}
+                let filterObject = {"daysOccupied": {"$ne": getDateString(affectedEntry.day)}}
                 if (requiresArmedGuardCredential) {
                     filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
                 }
@@ -119,7 +119,7 @@ scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) 
                         guard: availableGuard._id,
                         day: affectedEntry.day
                     })
-                    availableGuard.daysOccupied.push(affectedEntry.day)
+                    availableGuard.daysOccupied.push(getDateString(affectedEntry.day))
                     availableGuard.hoursWorked = availableGuard.hoursWorked + 10
                     await availableGuard.save()
                 } else {
@@ -141,7 +141,7 @@ scheduleSchema.statics.updateScheduleAfterContractDelete = async function(contra
         if (affectedScheduleEntries.length > 0) {
             for (const affectedEntry of affectedScheduleEntries) {                
                 let contractGuard = await Guard.findById(affectedEntry.guard)   
-                contractGuard.daysOccupied = contractGuard.daysOccupied.filter(day => day !== affectedEntry.day)
+                contractGuard.daysOccupied = contractGuard.daysOccupied.filter(day => day !== getDateString(affectedEntry.day))
                 contractGuard.hoursWorked = contractGuard.hoursWorked - 10                                                                         
                 await contractGuard.save()
             }
@@ -168,6 +168,10 @@ function hoursWorkedThisWeek(daysOccupied, currentDate) {
     }).length;
     
     return count * 10;
+}
+
+function getDateString(date) {
+    return `${date.toLocaleDateString('en-US', { weekday: 'long' })}, ${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 }
 
 module.exports = mongoose.model('Schedule', scheduleSchema)

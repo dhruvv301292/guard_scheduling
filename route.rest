@@ -6,6 +6,10 @@ GET http://localhost:5001/schedule
 
 ###
 
+GET http://localhost:5001/schedule?start=05/28/2023&end=06/15/2023
+
+###
+
 GET http://localhost:5001/contract
 
 ###
@@ -21,16 +25,16 @@ Content-Type: application/json
 ###
 
 //delete Dhruv
-DELETE http://localhost:5001/guard/646ad91cd083b9ce21795c6b
+DELETE http://localhost:5001/guard/646af52b025b97c987a0f737
 
 ###
 
 //delete contract
-DELETE http://localhost:5001/contract/646ad97d87bb8422ab49103f
+DELETE http://localhost:5001/contract/646af67d40a69479e8c8c9e1
 
 ###
 
-PATCH http://localhost:5001/guard/646ad91cd083b9ce21795c6b
+PATCH http://localhost:5001/guard/646af52b025b97c987a0f737
 Content-Type: application/json
 
 {
@@ -40,11 +44,11 @@ Content-Type: application/json
 
 ###
 
-PATCH http://localhost:5001/guard/646ad91cd083b9ce21795c6b
+PATCH http://localhost:5001/guard/646af52b025b97c987a0f737
 Content-Type: application/json
 
 {
-    "pto": "Friday, 6/2/2023"
+    "pto": "05/23/2023"
 }
 
 ###
