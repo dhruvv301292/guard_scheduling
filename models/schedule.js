@@ -19,8 +19,7 @@ const scheduleSchema = new mongoose.Schema({
 })
 
 scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
-    const contractDays = contract.datesOfMonth    
-    let updatedGuards = []
+    const contractDays = contract.datesOfMonth
     for (const day of contractDays) {
         try {
             const requiresArmedGuardCredential = contract.requiresArmedGuardCredential
@@ -28,23 +27,23 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
             if (requiresArmedGuardCredential) {
                 filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
             }
-            const availableGuard = await Guard.findOne(filterObject).sort({hoursWorked: 1})
+            const availableGuards = await Guard.find(filterObject).sort({hoursWorked: 1})
+            let availableGuard
+            for (const guard of availableGuards) {
+                if (hoursWorkedThisWeek(guard.daysOccupied, day) < 60) {
+                    availableGuard = guard
+                    break
+                }
+            }
             if (availableGuard) {
                 await this.create({
                     contract: contract._id,
                     guard: availableGuard._id,
                     day: day
                 })
-                let localGuardObj = updatedGuards.find(guard => guard._id.toString() === availableGuard._id.toString())
-                if (localGuardObj) {
-                    localGuardObj.daysOccupied.push(day)
-                    localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10
-                } else {
-                    localGuardObj = availableGuard
-                    localGuardObj.daysOccupied.push(day)
-                    localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10
-                    updatedGuards.push(localGuardObj)
-                }
+                availableGuard.daysOccupied.push(day)
+                availableGuard.hoursWorked = availableGuard.hoursWorked + 10
+                await availableGuard.save()
             } else {
                 console.log("Not enough officers to cover this contract. Please appoint more officers")
                 throw Error("Not enough officers to cover this contract. Please appoint more officers")
@@ -53,13 +52,9 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
             console.log(error.message)
         }       
     };
-    for (const guard of updatedGuards) {
-        await guard.save()
-    }
 }
 
 scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) {
-    let updatedGuards = []
     try {
         const affectedScheduleEntries = await this.find({"guard": {"$eq": guardId}, "day": {"$eq": ptoDay}}).populate('contract', 'requiresArmedGuardCredential')
         await this.deleteMany({"guard": {"$eq": guardId}, "day": {"$eq": ptoDay}})
@@ -69,40 +64,37 @@ scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) 
                 let filterObject = {"daysOccupied": {"$ne": affectedEntry.day}}
                 if (requiresArmedGuardCredential) {
                     filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
+                }                
+                const availableGuards = await Guard.find(filterObject).sort({hoursWorked: 1})
+                let availableGuard
+                for (const guard of availableGuards) {
+                    if (hoursWorkedThisWeek(guard.daysOccupied, affectedEntry.day) < 60) {
+                        availableGuard = guard
+                        break
+                    }
                 }
-                let availableGuard = await Guard.findOne(filterObject).sort({hoursWorked: 1})
                 if (availableGuard) {
                     await this.create({
                         contract: affectedEntry.contract._id,
                         guard: availableGuard._id,
                         day: affectedEntry.day
                     })
-                    let localGuardObj = updatedGuards.find(guard => guard._id.toString() === availableGuard._id.toString())
-                    if (localGuardObj) {
-                        localGuardObj.daysOccupied.push(affectedEntry.day)
-                        localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10                                                      
-                    } else {
-                        localGuardObj = availableGuard
-                        localGuardObj.daysOccupied.push(affectedEntry.day)
-                        localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10
-                        updatedGuards.push(localGuardObj)                                 
-                    }
+                    availableGuard.daysOccupied.push(affectedEntry.day)
+                    availableGuard.hoursWorked = availableGuard.hoursWorked + 10
+                    await availableGuard.save()
                 } else {
                     console.log("Not enough officers to cover this contract. Please appoint more officers or reject PTO request for officer: " + guardId)
                     throw Error("Not enough officers to cover this contract. Please appoint more officers or reject PTO request for officer: " + guardId)
                 }
             }
         }
-    } catch (error) {
+    } catch (error) {        
         console.log(error.message)
+        throw Error(error.message)
     }
-    for (const guard of updatedGuards) {
-        await guard.save()
-    }   
 }
 
 scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) {
-    let updatedGuards = []
     try {        
         const affectedScheduleEntries = await this.find({"guard": {"$eq": guardId}}).populate('contract', 'requiresArmedGuardCredential')
         await this.deleteMany({"guard": {"$eq": guardId}})
@@ -113,23 +105,23 @@ scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) 
                 if (requiresArmedGuardCredential) {
                     filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
                 }
-                const availableGuard = await Guard.findOne(filterObject).sort({hoursWorked: 1})
+                const availableGuards = await Guard.find(filterObject).sort({hoursWorked: 1})
+                let availableGuard
+                for (const guard of availableGuards) {
+                    if (hoursWorkedThisWeek(guard.daysOccupied, affectedEntry.day) < 60) {
+                        availableGuard = guard
+                        break
+                    }
+                }
                 if (availableGuard) {
                     await this.create({
                         contract: affectedEntry.contract._id,
                         guard: availableGuard._id,
                         day: affectedEntry.day
                     })
-                    let localGuardObj = updatedGuards.find(guard => guard._id.toString() === availableGuard._id.toString())
-                    if (localGuardObj) {
-                        localGuardObj.daysOccupied.push(affectedEntry.day)
-                        localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10                                                      
-                    } else {
-                        localGuardObj = availableGuard
-                        localGuardObj.daysOccupied.push(affectedEntry.day)
-                        localGuardObj.hoursWorked = localGuardObj.hoursWorked + 10
-                        updatedGuards.push(localGuardObj)                                 
-                    }
+                    availableGuard.daysOccupied.push(affectedEntry.day)
+                    availableGuard.hoursWorked = availableGuard.hoursWorked + 10
+                    await availableGuard.save()
                 } else {
                     console.log("Not enough officers to cover this contract. Please appoint more officers")
                     throw Error("Not enough officers to cover this contract. Please appoint more officers")
@@ -138,42 +130,44 @@ scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) 
         }
     } catch (error) {
         console.log(error.message)
-    }
-    for (const guard of updatedGuards) {
-        await guard.save()
+        throw Error(error.message)
     }
 }
 
 scheduleSchema.statics.updateScheduleAfterContractDelete = async function(contractId) {
-    let updatedGuards = []
     try {
         const affectedScheduleEntries = await this.find({"contract": {"$eq": contractId}})
         await this.deleteMany({"contract": {"$eq": contractId}})        
         if (affectedScheduleEntries.length > 0) {
-            for (const affectedEntry of affectedScheduleEntries) {
-                console.log("affected Entry Guard: " + affectedEntry.guard)
-                const contractGuard = await Guard.findById(affectedEntry.guard)  
-                console.log("contract guard: " + contractGuard)            
-                let localGuardObj = updatedGuards.find(guard => guard._id.toString() === contractGuard._id.toString())
-                if (localGuardObj) {
-                    localGuardObj.daysOccupied = localGuardObj.daysOccupied.filter(day => day !== affectedEntry.day)
-                    localGuardObj.hoursWorked = localGuardObj.hoursWorked - 10                                                      
-                } else {
-                    localGuardObj = contractGuard
-                    localGuardObj.daysOccupied = localGuardObj.daysOccupied.filter(day => day !== affectedEntry.day)
-                    localGuardObj.hoursWorked = localGuardObj.hoursWorked - 10
-                    updatedGuards.push(localGuardObj)                                 
-                }                
-                
+            for (const affectedEntry of affectedScheduleEntries) {                
+                let contractGuard = await Guard.findById(affectedEntry.guard)   
+                contractGuard.daysOccupied = contractGuard.daysOccupied.filter(day => day !== affectedEntry.day)
+                contractGuard.hoursWorked = contractGuard.hoursWorked - 10                                                                         
+                await contractGuard.save()
             }
         }
     } catch (error) {
         console.log(error.message)
         throw Error(error.message)
     }
-    for (const guard of updatedGuards) {
-        await guard.save()
-    }
+}
+
+function hoursWorkedThisWeek(daysOccupied, currentDate) {
+    const currentDateTime = new Date(currentDate).getTime();
+    const currentWeekStart = new Date(currentDateTime);
+    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+    currentWeekStart.setHours(0, 0, 0, 0);
+    
+    const currentWeekEnd = new Date(currentDateTime);
+    currentWeekEnd.setDate(currentWeekEnd.getDate() + (6 - currentWeekEnd.getDay()));
+    currentWeekEnd.setHours(23, 59, 59, 999);
+    
+    const count = daysOccupied.filter(dateStr => {
+      const dateTime = new Date(dateStr).getTime();
+      return dateTime >= currentWeekStart.getTime() && dateTime <= currentWeekEnd.getTime();
+    }).length;
+    
+    return count * 10;
 }
 
 module.exports = mongoose.model('Schedule', scheduleSchema)

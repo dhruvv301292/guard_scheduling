@@ -15,32 +15,22 @@ Content-Type: application/json
 
 {
     "name": "Dhruv",
-    "hasArmedGuardCredential": false,
-}
-
-###
-
-POST http://localhost:5001/guard
-Content-Type: application/json
-
-{
-    "name": "Deb",
     "hasArmedGuardCredential": true
 }
 
 ###
 
 //delete Dhruv
-DELETE http://localhost:5001/guard/64692f7fb024c24c281542d4
+DELETE http://localhost:5001/guard/646ad91cd083b9ce21795c6b
 
 ###
 
 //delete contract
-DELETE http://localhost:5001/contract/646a56a2035f193d164f725b
+DELETE http://localhost:5001/contract/646ad97d87bb8422ab49103f
 
 ###
 
-PATCH http://localhost:5001/guard/64692f37b024c24c281542ce
+PATCH http://localhost:5001/guard/646ad91cd083b9ce21795c6b
 Content-Type: application/json
 
 {
@@ -50,11 +40,11 @@ Content-Type: application/json
 
 ###
 
-PATCH http://localhost:5001/guard/64692f7fb024c24c281542d4
+PATCH http://localhost:5001/guard/646ad91cd083b9ce21795c6b
 Content-Type: application/json
 
 {
-    "pto": "Thursday"
+    "pto": "Friday, 6/2/2023"
 }
 
 ###
