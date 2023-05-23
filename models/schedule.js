@@ -24,7 +24,16 @@ const scheduleSchema = new mongoose.Schema({
 })
 
 
-// logic to update schedule when new contract is added
+
+/*
+* logic to update schedule when new contract is added
+* The idea is to search for available guards and sort them by total hours worked. 
+* Guards are filtered for armed credential if the contract demands it. 
+* Each guard is also checked for hours worked in the week of the shift date and 
+* assigned the shift if they're not already assigned 60 hours of shifts for that week.
+* After the assignment of every shift, the hoursWorked field of the guard is incremented by shift duration
+* and persisted to the db so that the next shift is assigned to another guard for equal distribution
+*/
 scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
     const contractDays = contract.datesOfMonth
     for (const day of contractDays) {
@@ -57,7 +66,7 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
             }     
         } catch (error) {
             console.log(error.message)
-            throw Error("Not enough officers to cover this contract. Please appoint more officers")
+            throw Error(error.message)
         }       
     };
 }
