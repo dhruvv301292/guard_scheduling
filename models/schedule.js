@@ -2,22 +2,29 @@ const mongoose = require('mongoose')
 const Guard = require('../models/guard')
 
 const scheduleSchema = new mongoose.Schema({
+    // refernce to the contract document
     contract: {
         type: mongoose.SchemaTypes.ObjectId,
         required: true,
         ref: 'Contract'
     },
+
+    // refernce to the guard document
     guard: {
         type: mongoose.SchemaTypes.ObjectId,
         required: true,
         ref: 'Guard'
     },
+
+    // date of this schedule entry
     day: {
         type: Date,
         required: true
     }
 })
 
+
+// logic to update schedule when new contract is added
 scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
     const contractDays = contract.datesOfMonth
     for (const day of contractDays) {
@@ -55,14 +62,15 @@ scheduleSchema.statics.updateScheduleNewContract = async function(contract) {
     };
 }
 
+// logic to update schedule when a guard goes on PTO and their shift for that date needs to be reassigned
 scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) {
     try {
         const affectedScheduleEntries = await this.find({"guard": {"$eq": guardId}, "day": {"$eq": new Date(ptoDay)}}).populate('contract', 'requiresArmedGuardCredential')
-        await this.deleteMany({"guard": {"$eq": guardId}, "day": {"$eq": new Date(ptoDay)}}) //this might not work
+        await this.deleteMany({"guard": {"$eq": guardId}, "day": {"$eq": new Date(ptoDay)}})
         if (affectedScheduleEntries.length > 0) {
             for (const affectedEntry of affectedScheduleEntries) {
                 const requiresArmedGuardCredential = affectedEntry.contract.requiresArmedGuardCredential
-                let filterObject = {"daysOccupied": {"$ne": getDateString(affectedEntry.day)}} //here affectedEntry.day is in date format
+                let filterObject = {"daysOccupied": {"$ne": getDateString(affectedEntry.day)}}
                 if (requiresArmedGuardCredential) {
                     filterObject = {...filterObject, "hasArmedGuardCredential": {"$eq": true}}
                 }                
@@ -95,6 +103,7 @@ scheduleSchema.statics.updateScheduleAfterPto = async function(guardId, ptoDay) 
     }
 }
 
+// logic to update schedule when a guard document is deleted and their shifts need to be reassigned to other available guards
 scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) {
     try {        
         const affectedScheduleEntries = await this.find({"guard": {"$eq": guardId}}).populate('contract', 'requiresArmedGuardCredential')
@@ -135,6 +144,7 @@ scheduleSchema.statics.updateScheduleAfterGuardDelete = async function(guardId) 
     }
 }
 
+// logic to update schedule when a contract document is deleted and guards working shifts of that contract need their daysOccupied to be cleared
 scheduleSchema.statics.updateScheduleAfterContractDelete = async function(contractId) {
     try {
         const affectedScheduleEntries = await this.find({"contract": {"$eq": contractId}})
@@ -153,6 +163,7 @@ scheduleSchema.statics.updateScheduleAfterContractDelete = async function(contra
     }
 }
 
+// function to compute the total number of hours worked by guard in the week pertaining to a certain date - to ensure that no guard is assigned more than 60 hours worth of shifts 
 function hoursWorkedThisWeek(daysOccupied, currentDate) {
     const currentDateTime = new Date(currentDate).getTime();
     const currentWeekStart = new Date(currentDateTime);

@@ -4,7 +4,7 @@ const Guard = require('../models/guard')
 const Contract = require('../models/contract')
 const Schedule = require('../models/schedule')
 
-// Get all entries in schedule
+// Get all entries in schedule/get entries in schedule pertaining to start/stop date
 router.get('/', async (req, res) => {
     let start = req.query.start
     let end = req.query.end
@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
     }
   })
 
+// delete all schedule entries
 router.delete('/', async (req, res) => {
     try {
         await Schedule.deleteMany({ contract: {$exists: true} })
